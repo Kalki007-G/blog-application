@@ -1,10 +1,8 @@
 package com.kalki.blog.controllers;
 
-
+import com.kalki.blog.config.MessageConstants;
 import com.kalki.blog.exceptions.ApiException;
-import com.kalki.blog.payloads.JwtAuthRequest;
-import com.kalki.blog.payloads.JwtAuthResponse;
-import com.kalki.blog.payloads.UserDto;
+import com.kalki.blog.payloads.*;
 import com.kalki.blog.security.JwtTokenHelper;
 import com.kalki.blog.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,13 +14,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/auth/")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
 
     @Autowired
@@ -38,34 +33,30 @@ public class AuthController {
     private UserService userService;
 
     @PostMapping("/login")
-    public ResponseEntity<JwtAuthResponse> createToken(@RequestBody JwtAuthRequest request) throws Exception {
-        this.authenticate(request.getUsername(), request.getPassword());
-        UserDetails userDetails = this.userDetailsService.loadUserByUsername(request.getUsername());
-        String token = this.jwtTokenHelper.generateToken(userDetails);
+    public ResponseEntity<ApiResponseWrapper<JwtAuthResponse>> createToken(@RequestBody JwtAuthRequest request) throws Exception {
+        authenticate(request.getUsername(), request.getPassword());
+        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getUsername());
+        String token = jwtTokenHelper.generateToken(userDetails);
+
         JwtAuthResponse response = new JwtAuthResponse();
         response.setToken(token);
-        return new ResponseEntity<JwtAuthResponse>(response, HttpStatus.OK);
+
+        return ResponseEntity.ok(ApiResponseWrapper.success(MessageConstants.LOGIN_SUCCESS, response));
     }
 
     private void authenticate(String username, String password) throws Exception {
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
-
         try {
-            this.authenticationManager.authenticate(authenticationToken);
+            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
         } catch (UsernameNotFoundException ex) {
-            // This block will trigger if username is invalid
-            throw new ApiException("User not found with email : " + username + " : 0", false);
+            throw new ApiException(MessageConstants.USER_NOT_FOUND, false);
         } catch (BadCredentialsException ex) {
-            // This will trigger if password is wrong
-            throw new ApiException("Invalid username or password !!", true);
+            throw new ApiException(MessageConstants.INVALID_CREDENTIALS, false);
         }
     }
 
-    //Register new user api
     @PostMapping("/register")
-    public ResponseEntity<UserDto> registerUser(@RequestBody UserDto userDto){
-        UserDto registeredUser=this.userService.registerNewUser(userDto);
-        return new ResponseEntity<UserDto>(registeredUser,HttpStatus.CREATED);
+    public ResponseEntity<ApiResponseWrapper<UserDto>> registerUser(@RequestBody UserDto userDto) {
+        UserDto registeredUser = userService.registerNewUser(userDto);
+        return new ResponseEntity<>(ApiResponseWrapper.success(MessageConstants.USER_REGISTERED_SUCCESS, registeredUser), HttpStatus.CREATED);
     }
 }
-

@@ -1,6 +1,6 @@
 package com.kalki.blog.exceptions;
 
-import com.kalki.blog.payloads.ApiResponse;
+import com.kalki.blog.payloads.ApiResponseWrapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -20,54 +20,81 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiResponse> handleResourceNotFound(ResourceNotFoundException ex) {
-        return new ResponseEntity<>(new ApiResponse(ex.getMessage(), false), HttpStatus.NOT_FOUND);
+    public ResponseEntity<ApiResponseWrapper<Object>> handleResourceNotFound(ResourceNotFoundException ex) {
+        return new ResponseEntity<>(
+                ApiResponseWrapper.failure(ex.getMessage()),
+                HttpStatus.NOT_FOUND
+        );
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponseWrapper<Map<String, String>>> handleValidationErrors(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach(error -> {
             String field = ((FieldError) error).getField();
             String message = error.getDefaultMessage();
             errors.put(field, message);
         });
-        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(
+                ApiResponseWrapper.failure("Validation failed: " + errors),
+                HttpStatus.BAD_REQUEST
+        );
     }
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ApiResponse> handleBadCredentials(BadCredentialsException ex) {
-        return new ResponseEntity<>(new ApiResponse("Invalid username or password", false), HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<ApiResponseWrapper<Object>> handleBadCredentials(BadCredentialsException ex) {
+        return new ResponseEntity<>(
+                ApiResponseWrapper.failure("Invalid username or password"),
+                HttpStatus.UNAUTHORIZED
+        );
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<ApiResponse> handleUserNotFound(UsernameNotFoundException ex) {
-        return new ResponseEntity<>(new ApiResponse("User not found", false), HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<ApiResponseWrapper<Object>> handleUserNotFound(UsernameNotFoundException ex) {
+        return new ResponseEntity<>(
+                ApiResponseWrapper.failure("User not found"),
+                HttpStatus.UNAUTHORIZED
+        );
     }
 
     @ExceptionHandler(ExpiredJwtException.class)
-    public ResponseEntity<ApiResponse> handleExpiredJwt(ExpiredJwtException ex) {
-        return new ResponseEntity<>(new ApiResponse("JWT token has expired", false), HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<ApiResponseWrapper<Object>> handleExpiredJwt(ExpiredJwtException ex) {
+        return new ResponseEntity<>(
+                ApiResponseWrapper.failure("JWT token has expired"),
+                HttpStatus.UNAUTHORIZED
+        );
     }
 
     @ExceptionHandler(MalformedJwtException.class)
-    public ResponseEntity<ApiResponse> handleMalformedJwt(MalformedJwtException ex) {
-        return new ResponseEntity<>(new ApiResponse("Invalid JWT token", false), HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<ApiResponseWrapper<Object>> handleMalformedJwt(MalformedJwtException ex) {
+        return new ResponseEntity<>(
+                ApiResponseWrapper.failure("Invalid JWT token"),
+                HttpStatus.UNAUTHORIZED
+        );
     }
 
     @ExceptionHandler(SignatureException.class)
-    public ResponseEntity<ApiResponse> handleSignatureException(SignatureException ex) {
-        return new ResponseEntity<>(new ApiResponse("JWT signature does not match", false), HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<ApiResponseWrapper<Object>> handleSignatureException(SignatureException ex) {
+        return new ResponseEntity<>(
+                ApiResponseWrapper.failure("JWT signature does not match"),
+                HttpStatus.UNAUTHORIZED
+        );
     }
 
     @ExceptionHandler(ApiException.class)
-    public ResponseEntity<ApiResponse> handleApiException(ApiException ex) {
-        return new ResponseEntity<>(new ApiResponse(ex.getMessage(), ex.isSuccess()), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ApiResponseWrapper<Object>> handleApiException(ApiException ex) {
+        return new ResponseEntity<>(
+                ApiResponseWrapper.failure(ex.getMessage()),
+                HttpStatus.BAD_REQUEST
+        );
     }
 
     // Catch-all handler for unexpected exceptions
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiResponse> handleGenericException(Exception ex) {
-        return new ResponseEntity<>(new ApiResponse("An unexpected error occurred: " + ex.getMessage(), false), HttpStatus.INTERNAL_SERVER_ERROR);
+    public ResponseEntity<ApiResponseWrapper<Object>> handleGenericException(Exception ex) {
+        return new ResponseEntity<>(
+                ApiResponseWrapper.failure("An unexpected error occurred: " + ex.getMessage()),
+                HttpStatus.INTERNAL_SERVER_ERROR
+        );
     }
 }

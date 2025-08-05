@@ -1,12 +1,11 @@
 package com.kalki.blog.controllers;
 
-
-import com.kalki.blog.payloads.ApiResponse;
+import com.kalki.blog.config.MessageConstants;
+import com.kalki.blog.payloads.ApiResponseWrapper;
 import com.kalki.blog.payloads.CategoryDto;
 import com.kalki.blog.services.CategoryService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.ContextAnnotationAutowireCandidateResolver;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,37 +18,34 @@ public class CategoryController {
 
     @Autowired
     private CategoryService categoryService;
-    //create
+
     @PostMapping("/")
-    public ResponseEntity<CategoryDto> createCategory(@Valid @RequestBody CategoryDto categoryDto){
-        CategoryDto createCategory= this.categoryService.createCategory(categoryDto);
-        return new ResponseEntity<CategoryDto>(createCategory, HttpStatus.CREATED);
+    public ResponseEntity<ApiResponseWrapper<CategoryDto>> createCategory(@Valid @RequestBody CategoryDto categoryDto) {
+        CategoryDto created = categoryService.createCategory(categoryDto);
+        return new ResponseEntity<>(ApiResponseWrapper.success(MessageConstants.CATEGORY_CREATED, created), HttpStatus.CREATED);
     }
-    //Update
+
     @PutMapping("/{catId}")
-    public ResponseEntity<CategoryDto> updateCategory(@Valid @RequestBody CategoryDto categoryDto, @PathVariable Integer catId){
-        CategoryDto updateCategory=this.categoryService.updateCategory(categoryDto,catId);
-        return new ResponseEntity<CategoryDto>(updateCategory,HttpStatus.OK);
+    public ResponseEntity<ApiResponseWrapper<CategoryDto>> updateCategory(@Valid @RequestBody CategoryDto categoryDto, @PathVariable Integer catId) {
+        CategoryDto updated = categoryService.updateCategory(categoryDto, catId);
+        return ResponseEntity.ok(ApiResponseWrapper.success(MessageConstants.CATEGORY_UPDATED, updated));
     }
-    //Delete
+
     @DeleteMapping("/{catId}")
-    public ResponseEntity<ApiResponse> deleteCategory(@PathVariable Integer catId){
-        this.categoryService.deleteCategory(catId);
-        return new ResponseEntity<ApiResponse>(new ApiResponse("category is deleted successfully !!",false),HttpStatus.OK);
+    public ResponseEntity<ApiResponseWrapper<Void>> deleteCategory(@PathVariable Integer catId) {
+        categoryService.deleteCategory(catId);
+        return ResponseEntity.ok(ApiResponseWrapper.success(MessageConstants.CATEGORY_DELETED, null));
     }
-    //Get
+
     @GetMapping("/{catId}")
-    public ResponseEntity<CategoryDto> getCategory(@PathVariable Integer catId){
-        CategoryDto categoryDto=this.categoryService.getCategory(catId);
-        return new ResponseEntity<CategoryDto>(categoryDto,HttpStatus.OK);
+    public ResponseEntity<ApiResponseWrapper<CategoryDto>> getCategory(@PathVariable Integer catId) {
+        CategoryDto categoryDto = categoryService.getCategory(catId);
+        return ResponseEntity.ok(ApiResponseWrapper.success(MessageConstants.CATEGORY_FETCHED, categoryDto));
     }
-    //Get all
+
     @GetMapping("/")
-    public ResponseEntity<List<CategoryDto>> getCategories(){
-        List<CategoryDto> categories=this.categoryService.getCategories();
-        return ResponseEntity.ok(categories);
-
+    public ResponseEntity<ApiResponseWrapper<List<CategoryDto>>> getCategories() {
+        List<CategoryDto> categories = categoryService.getCategories();
+        return ResponseEntity.ok(ApiResponseWrapper.success(MessageConstants.CATEGORIES_FETCHED, categories));
     }
-
-
 }
