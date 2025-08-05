@@ -1,6 +1,5 @@
 package com.kalki.blog.payloads;
 
-import com.kalki.blog.entities.Role;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,23 +12,23 @@ import java.util.Set;
 @Getter
 @Setter
 public class UserDto {
+
     private int id;
 
-    @NotEmpty
-    @Size(min=4,message = "Username must be min of 4 characters")
+    @NotBlank(message = "Username cannot be blank")
+    @Size(min = 4, message = "Username must be at least 4 characters long")
     private String name;
 
-    @Email(message = "Email address is not valid !")
+    @NotBlank(message = "Email is required")
+    @Email(message = "Invalid email format")
     private String email;
 
-    @NotEmpty
-    @Size(min=5,max=10,message ="Password must be min of 3 chars and max of 10 chars!!")
+    @NotBlank(message = "Password is required")
+    @Size(min = 5, max = 10, message = "Password must be between 5 and 10 characters")
     private String password;
 
-    @NotEmpty
+    @NotBlank(message = "About section cannot be blank")
     private String about;
 
     private Set<RoleDto> roles = new HashSet<>();
-
-
 }

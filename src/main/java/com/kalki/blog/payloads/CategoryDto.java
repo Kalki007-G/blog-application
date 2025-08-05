@@ -10,12 +10,14 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CategoryDto {
-    private  Integer categoryId;
-    @NotBlank
-    @Size(min=4,message = "min size of category title is 4")
+
+    private Integer categoryId;
+
+    @NotBlank(message = "Category title cannot be blank")
+    @Size(min = 4, message = "Category title must be at least 4 characters")
     private String categoryTitle;
 
-    @NotBlank
-    @Size(min=10,message="min size of category desc is 10")
+    @NotBlank(message = "Category description cannot be blank")
+    @Size(min = 10, message = "Category description must be at least 10 characters")
     private String categoryDescription;
 }

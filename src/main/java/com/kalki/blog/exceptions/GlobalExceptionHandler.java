@@ -5,7 +5,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -14,7 +13,6 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureException;
 
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,40 +20,38 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ApiResponse> resourceNotFoundExceptionHandler(ResourceNotFoundException ex){
-        String message=ex.getMessage();
-        ApiResponse apiResponse=new ApiResponse(message,false);
-        return new ResponseEntity<ApiResponse>(apiResponse, HttpStatus.NOT_FOUND);
-
+    public ResponseEntity<ApiResponse> handleResourceNotFound(ResourceNotFoundException ex) {
+        return new ResponseEntity<>(new ApiResponse(ex.getMessage(), false), HttpStatus.NOT_FOUND);
     }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String,String>> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex){
-        Map<String,String> resp=new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach((error) ->{
-            String fieldName = ((FieldError) error).getField();
+    public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach(error -> {
+            String field = ((FieldError) error).getField();
             String message = error.getDefaultMessage();
-            resp.put(fieldName,message);
+            errors.put(field, message);
         });
-        return new ResponseEntity<Map<String,String>>(resp,HttpStatus.BAD_REQUEST);
-
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
+
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ApiResponse> handleBadCredentialsException(BadCredentialsException ex) {
+    public ResponseEntity<ApiResponse> handleBadCredentials(BadCredentialsException ex) {
         return new ResponseEntity<>(new ApiResponse("Invalid username or password", false), HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<ApiResponse> handleUsernameNotFoundException(UsernameNotFoundException ex) {
+    public ResponseEntity<ApiResponse> handleUserNotFound(UsernameNotFoundException ex) {
         return new ResponseEntity<>(new ApiResponse("User not found", false), HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(ExpiredJwtException.class)
-    public ResponseEntity<ApiResponse> handleExpiredJwtException(ExpiredJwtException ex) {
+    public ResponseEntity<ApiResponse> handleExpiredJwt(ExpiredJwtException ex) {
         return new ResponseEntity<>(new ApiResponse("JWT token has expired", false), HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(MalformedJwtException.class)
-    public ResponseEntity<ApiResponse> handleMalformedJwtException(MalformedJwtException ex) {
+    public ResponseEntity<ApiResponse> handleMalformedJwt(MalformedJwtException ex) {
         return new ResponseEntity<>(new ApiResponse("Invalid JWT token", false), HttpStatus.UNAUTHORIZED);
     }
 
@@ -65,12 +61,13 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ApiException.class)
-    public ResponseEntity<ApiResponse> handleApiExceptionH(ApiException ex){
-        String message=ex.getMessage();
-        ApiResponse apiResponse=new ApiResponse(message, ex.isSuccess());
-        return new ResponseEntity<ApiResponse>(apiResponse, HttpStatus.BAD_REQUEST);
-
+    public ResponseEntity<ApiResponse> handleApiException(ApiException ex) {
+        return new ResponseEntity<>(new ApiResponse(ex.getMessage(), ex.isSuccess()), HttpStatus.BAD_REQUEST);
     }
 
-
+    // Catch-all handler for unexpected exceptions
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse> handleGenericException(Exception ex) {
+        return new ResponseEntity<>(new ApiResponse("An unexpected error occurred: " + ex.getMessage(), false), HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 }
