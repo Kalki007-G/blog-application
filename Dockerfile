@@ -15,7 +15,7 @@ FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # build stage se JAR copy karo
-COPY --from=build /app/target/*.jar app.jar
+COPY --from=build /app/target/blog-app-apis-0.0.1-SNAPSHOT.jar app.jar
 
 # Railway automatically PORT env deta hai (default: 8080)
 ENV PORT=8080
